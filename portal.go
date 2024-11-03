@@ -10,7 +10,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
+	"path"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -1611,6 +1613,12 @@ func (portal *Portal) handleMatrixMessage(sender *User, evt *event.Event) {
 		if content.FileName != "" && content.FileName != content.Body {
 			filename = content.FileName
 			sendReq.Content, sendReq.AllowedMentions = portal.parseMatrixHTML(content)
+		}
+		if path.Ext(filename) == "" && content.Info.MimeType != "" {
+			ext, err := mime.ExtensionsByType(content.Info.MimeType)
+			if err == nil && ext != nil {
+				filename = filename + ext[0]
+			}
 		}
 
 		if portal.bridge.Config.Bridge.UseDiscordCDNUpload && !isWebhookSend && sess.IsUser {
